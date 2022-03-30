@@ -1,10 +1,25 @@
-import java.util.Optional;
+import java.util.ArrayList;
 
 public class Solution {
-    public static final int STATUS_SOLVABLE = 0;
-    public static final int STATUS_UNBOUNDED = 1;
-    public static final int STATUS_INFEASIBLE = 2;
+    private SolutionResult status;
+    private ArrayList<Double> solution;
+    private double objectiveValue;
 
-    private int status;
-    private Optional<Double> solution;
+    public Solution(SolutionResult status, ArrayList<Double> solution, double objectiveValue) {
+        this.status = status;
+        this.solution = solution;
+        this.objectiveValue = objectiveValue;
+    }
+
+    public SolutionResult getStatus() {
+        return status;
+    }
+
+    public ArrayList<Double> getSolution() {
+        return solution;
+    }
+
+    public double getObjectiveValue() {
+        return objectiveValue;
+    }
 }

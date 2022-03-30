@@ -9,6 +9,9 @@ public class StandardForm {
     public ArrayList<ArrayList<Double>> A; // m x n matrix
     public ArrayList<Double> b; // m vector
     public ArrayList<Double> c; // n vector
+
+    // This optional constant term in the objective function does not change solutions
+    // to the linear program and will be useful for the simplex algorithm.
     public double objConst;
 
     private final int n;

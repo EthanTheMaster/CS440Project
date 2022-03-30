@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class LinearProgram {
@@ -6,16 +7,21 @@ public class LinearProgram {
     private ArrayList<Constraint> userConstraints;
     private ObjectiveFunction objective;
 
-    private StandardForm computedStandardForm;
-
     private int currentVariableId = 0;
+
+    private Solution currentSolution;
 
     public LinearProgram() {
         userVariables = new ArrayList<>();
         userConstraints = new ArrayList<>();
     }
 
+    private void evictCurrentSolution() {
+        currentSolution = null;
+    }
+
     public Variable registerVariable(String name, double lowerBound, double upperBound) {
+        evictCurrentSolution();
         Variable res = new Variable(currentVariableId, name, lowerBound, upperBound);
         currentVariableId++;
         userVariables.add(res);
@@ -23,6 +29,7 @@ public class LinearProgram {
     }
 
     public Variable registerNonnegativeVariable(String name) {
+        evictCurrentSolution();
          Variable res = new Variable(currentVariableId, name);
          currentVariableId++;
          userVariables.add(res);
@@ -30,6 +37,7 @@ public class LinearProgram {
     }
 
     public Variable registerUnboundedVariable(String name) {
+        evictCurrentSolution();
         Variable res = new Variable(currentVariableId, name, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
         currentVariableId++;
         userVariables.add(res);
@@ -37,10 +45,12 @@ public class LinearProgram {
     }
 
     public void addConstraint(Constraint c) {
+        evictCurrentSolution();
         userConstraints.add(c);
     }
 
     public void setObjective(ObjectiveFunction objective) {
+        evictCurrentSolution();
         this.objective = objective;
     }
 
@@ -201,18 +211,84 @@ public class LinearProgram {
         }
     }
 
-    public void buildStandardForm() {
+    public StandardForm buildStandardForm() {
         assert objective != null;
         // Number of variables needed to represent linear program in standard form
         int n = addAuxiliaryVariables();
-        computedStandardForm = new StandardForm(n);
-        addVariableConstraints(computedStandardForm);
+        StandardForm state = new StandardForm(n);
+        addVariableConstraints(state);
         for (Constraint c : userConstraints) {
-            addConstraint(c, computedStandardForm);
+            addConstraint(c, state);
         }
-        addObjectiveFunction(computedStandardForm);
+        addObjectiveFunction(state);
 
-        System.out.println(computedStandardForm.prettyPrint());
+        return state;
     }
 
+    public void solve() {
+        StandardForm standardForm = buildStandardForm();
+        SimplexState simplexState = new SimplexState(standardForm);
+        currentSolution = simplexState.solve();
+    }
+
+    public Optional<Double> evaluateVariable(Variable x) {
+        // Solve an unsolved linear program
+        if (currentSolution == null) {
+            solve();
+        }
+
+        if (currentSolution.getStatus() != SolutionResult.FEASIBLE) {
+            return Optional.empty();
+        }
+
+        // The solution is feasible so reconstruct variable value from auxiliary
+        // variable values
+        boolean finiteLowerBound = Double.isFinite(x.lowerBound);
+        boolean finiteUpperBound = Double.isFinite(x.upperBound);
+        // Perform substitution of variable x in terms of auxiliary variables
+        if (finiteLowerBound) {
+            // a <= x <= b or a <= x
+            // => x = a + x' where x' >= 0
+            int aux = x.getAuxiliaryVariableIds().get(0);
+            double auxValue = currentSolution.getSolution().get(aux);
+            double res = x.lowerBound + auxValue;
+            return Optional.of(res);
+        } else if (finiteUpperBound) {
+            // x <= b
+            // => x = b - x' where x' >= 0
+            int aux = x.getAuxiliaryVariableIds().get(0);
+            double auxValue = currentSolution.getSolution().get(aux);
+            double res = x.upperBound - auxValue;
+            return Optional.of(res);
+        } else {
+            // x is an unbounded real number
+            // => x = x1 - x2 where x1, x2 >= 0
+            int x1 = x.getAuxiliaryVariableIds().get(0);
+            int x2 = x.getAuxiliaryVariableIds().get(1);
+            double x1Value = currentSolution.getSolution().get(x1);
+            double x2Value = currentSolution.getSolution().get(x2);
+
+            double res = x1Value - x2Value;
+            return Optional.of(res);
+        }
+    }
+
+    public Optional<Double> getObjectiveValue() {
+        // Solve an unsolved linear program
+        if (currentSolution == null) {
+            solve();
+        }
+
+        if (currentSolution.getStatus() == SolutionResult.INFEASIBLE) {
+            return Optional.empty();
+        } else {
+            if (objective.getGoal() == ObjectiveGoal.MAXIMIZE) {
+                return Optional.of(currentSolution.getObjectiveValue());
+            } else {
+                // Simplex algorithm does maximization and we turned our minimization
+                // problem into a maximization one by negating the objective function
+                return Optional.of(-currentSolution.getObjectiveValue());
+            }
+        }
+    }
 }
