@@ -22,7 +22,7 @@ public class LinearProgram {
 
     public Variable registerVariable(String name, double lowerBound, double upperBound) {
         evictCurrentSolution();
-        Variable res = new Variable(currentVariableId, name, lowerBound, upperBound);
+        Variable res = new Variable(name, lowerBound, upperBound);
         currentVariableId++;
         userVariables.add(res);
         return res;
@@ -30,7 +30,7 @@ public class LinearProgram {
 
     public Variable registerNonnegativeVariable(String name) {
         evictCurrentSolution();
-         Variable res = new Variable(currentVariableId, name);
+         Variable res = new Variable(name);
          currentVariableId++;
          userVariables.add(res);
          return res;
@@ -38,7 +38,7 @@ public class LinearProgram {
 
     public Variable registerUnboundedVariable(String name) {
         evictCurrentSolution();
-        Variable res = new Variable(currentVariableId, name, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
+        Variable res = new Variable(name, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
         currentVariableId++;
         userVariables.add(res);
         return res;
