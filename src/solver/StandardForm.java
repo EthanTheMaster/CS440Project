@@ -1,3 +1,5 @@
+package solver;
+
 import java.util.ArrayList;
 
 // This class is for internal use only.

@@ -1,12 +1,14 @@
+package solver;
+
 import java.util.ArrayList;
 
 public class Variable {
-    // Properties that are maintained by LinearProgram and should
+    // Properties that are maintained by solver.LinearProgram and should
     // not be touched by users
     private ArrayList<Integer> auxiliaryVariableIds = new ArrayList<>();
 
     // Properties that users are free to modify and see and only come into
-    // effect at the moment the LinearProgram "compiles" the program
+    // effect at the moment the solver.LinearProgram "compiles" the program
     public String name;
     public double lowerBound;
     public double upperBound;

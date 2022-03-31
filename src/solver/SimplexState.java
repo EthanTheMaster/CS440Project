@@ -1,3 +1,5 @@
+package solver;
+
 import java.util.ArrayList;
 
 public class SimplexState {
@@ -14,6 +16,7 @@ public class SimplexState {
     public ArrayList<Double> c; // n vector
     private double objConst;
 
+    // TODO: Consider using a BitSet instead
     private ArrayList<Boolean> nonBasic; // n vector
 
     // Covert a standard form linear program into slack form for simplex to use
@@ -241,6 +244,8 @@ public class SimplexState {
                 //
                 // Arbitrarily choose some non-zero nonbasic variable in the equality
                 // with the auxiliary variable and pivot
+
+                // TODO: Consider choosing the entering variable to have a large weight for numerical stability.
                 for (int j = 0; j < n; j++) {
                     if (nonBasic.get(j) && Math.abs(getA(auxVar, j)) > EPSILON) {
                         pivot(j, auxVar);
