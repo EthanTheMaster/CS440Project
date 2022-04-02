@@ -5,6 +5,10 @@ import solver.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+/*
+All references to "CLRS" refers to:
+Introduction to Algorithms Third Edition by Cormen, Leiserson, Rivest, and Stein
+ */
 public class CLRSSimplexTest {
     public static void convertToSlackTest() {
         // Checks slack form against example on CLRS pp. 855

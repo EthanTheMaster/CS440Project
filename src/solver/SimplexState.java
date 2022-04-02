@@ -2,6 +2,10 @@ package solver;
 
 import java.util.ArrayList;
 
+/*
+All references to "CLRS" refers to:
+Introduction to Algorithms Third Edition by Cormen, Leiserson, Rivest, and Stein
+ */
 public class SimplexState {
     private static final double EPSILON = 0.0000001;
 
@@ -19,7 +23,11 @@ public class SimplexState {
     // TODO: Consider using a BitSet instead
     private ArrayList<Boolean> nonBasic; // n vector
 
-    // Covert a standard form linear program into slack form for simplex to use
+    /**
+     * Creates a linear program in slack form given a linear program in
+     * standard form
+     * @param standardForm Linear program in standard form
+     */
     public SimplexState(StandardForm standardForm) {
         // The nonbasic variables occur in the objective function
         int numNonBasicVars = standardForm.c.size();
@@ -66,6 +74,13 @@ public class SimplexState {
         }
     }
 
+    /**
+     * Pivots the linear program according to Pivot function on CLRS pp. 869
+     * but pivots in-place without returning a new modified linear program
+     *
+     * @param enteringVariable the entering variable
+     * @param leavingVariable the leaving variable
+     */
     public void pivot(int enteringVariable, int leavingVariable) {
         // Rename to be similar to CLRS
         int e = enteringVariable;
@@ -108,14 +123,18 @@ public class SimplexState {
         nonBasic.set(l, true); // leaving variable is now nonbasic
     }
 
-    // So long there is a nonbasic variable with positive weight, this method will keep
-    // pivoting the linear program using Bland's rule to prevent cycling
-    //
-    // This method assumes that the linear program at invocation time
-    // has a basic solution.
-    //
-    // Returns false if during pivoting an unbounded solution was found
-    // and true otherwise
+    /**
+     * This function encodes the operation of lines 3-12 of the Simplex
+     * function on CLRS pp. 871 and uses Bland's rule to prevent cycling.
+     *
+     * This function also assumes that the linear program at invocation
+     * time has a basic solution. It will repeatedly pivot the linear
+     * program against a variable with positive coefficient in the
+     * objective function.
+     *
+     * @return false if during pivoting an unbounded solution was found
+     * and true otherwise
+     */
     public boolean simplexPivot() {
         while (true) {
             // Find entering variable
@@ -155,11 +174,15 @@ public class SimplexState {
         return true;
     }
 
-    // Convert linear program into a slack form where basic solution is
-    // feasible
-    //
-    // Returns false if it is not possible to perform a transformation
-    // making the linear program infeasible and returns true otherwise
+    /**
+     * Performs the Initialize-Simplex function on CLRS pp. 887.
+     * It converts a linear program into a slack form where the basic
+     * solution is feasible.
+     *
+     * @return false if it is not possible to perform conversion implying
+     * that the original linear program is infeasible and returns true
+     * otherwise
+     */
     public boolean initializeSimplex() {
         int k = -1;
         double bk = Double.POSITIVE_INFINITY;
@@ -305,6 +328,10 @@ public class SimplexState {
 
     }
 
+    /**
+     * Solves the current linear program
+     * @return a solution to the linear program
+     */
     public Solution solve() {
         boolean isFeasible = initializeSimplex();
         if (!isFeasible) {
@@ -327,6 +354,12 @@ public class SimplexState {
         return new Solution(SolutionResult.FEASIBLE, solution, objConst);
     }
 
+    /**
+     * Creates an empty m by n matrix initialized to all zeroes
+     * @param m number of rows
+     * @param n number of columns
+     * @return an empty m by n matrix
+     */
     private ArrayList<ArrayList<Double>> getEmptyMatrix(int m, int n) {
         assert m >= 0 && n >= 0;
         ArrayList<ArrayList<Double>> res = new ArrayList<>(m);
@@ -340,15 +373,32 @@ public class SimplexState {
         return res;
     }
 
-    // Helper function to update A matrix
+    /**
+     * Helper function to assign a value to A[i][j]
+     * @param i the row
+     * @param j the column
+     * @param v the new value
+     */
     public void updateA(int i, int j, double v) {
         A.get(i).set(j, v);
     }
 
+    /**
+     * Helper function get A[i][j]
+     * @param i the row
+     * @param j the column
+     * @return the value of A[i][j]
+     */
     public double getA(int i, int j) {
         return A.get(i).get(j);
     }
 
+    /**
+     * Convenient method to print out the linear program's
+     * current configuration in slack form
+     * @return a string holding a formatted linear program
+     * in slack form
+     */
     public String prettyPrint() {
         StringBuilder res = new StringBuilder();
         // Print objective

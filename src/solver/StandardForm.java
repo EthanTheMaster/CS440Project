@@ -13,11 +13,19 @@ public class StandardForm {
     public ArrayList<Double> c; // n vector
 
     // This optional constant term in the objective function does not change solutions
-    // to the linear program and will be useful for the simplex algorithm.
+    // to the linear program and will be useful for the simplex algorithm. However,
+    // the addition of this term technically makes our linear program not in standard
+    // form but we add it because it is convenient.
     public double objConst;
 
     private final int n;
 
+    /**
+     * Creates an empty linear program in standard form with a set
+     * number of variables
+     * @param numVariables the number of variables in the standard form
+     *                     linear program
+     */
     public StandardForm(int numVariables) {
         n = numVariables;
 
@@ -32,16 +40,31 @@ public class StandardForm {
         }
     }
 
-    // Helper function to update A matrix
+    /**
+     * Helper function to assign a value to A[i][j]
+     * @param i the row
+     * @param j the column
+     * @param v the new value
+     */
     public void updateA(int i, int j, double v) {
         A.get(i).set(j, v);
     }
 
+    /**
+     * Helper function get A[i][j]
+     * @param i the row
+     * @param j the column
+     * @return the value of A[i][j]
+     */
     public double getA(int i, int j) {
         return A.get(i).get(j);
     }
 
-    // Adds an empty row to A and b and returns the index of that row
+    /**
+     * Adds an empty row to A matrix and empty entry in b vector
+     * representing a new empty constraint
+     * @return the index of the new constraint added
+     */
     public int addEmptyConstraint() {
         int index = A.size();
         ArrayList<Double> row = new ArrayList<>(n);
@@ -53,6 +76,12 @@ public class StandardForm {
         return index;
     }
 
+    /**
+     * Convenient method to print out the linear program
+     * in standard form
+     * @return a string holding a formatted linear program
+     * in standard form
+     */
     public String prettyPrint() {
         StringBuilder res = new StringBuilder();
         // Print objective

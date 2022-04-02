@@ -3,24 +3,38 @@ package solver;
 import java.util.ArrayList;
 
 public class Variable {
-    // Properties that are maintained by solver.LinearProgram and should
-    // not be touched by users
-    private ArrayList<Integer> auxiliaryVariableIds = new ArrayList<>();
+    // This list is maintained by solver.LinearProgram to remember
+    // which auxiliary variables are connected to this variable.
+    // The value(s) of the auxiliary variable(s) determine this
+    // variable's value.
+    private final ArrayList<Integer> auxiliaryVariableIds = new ArrayList<>();
 
-    // Properties that users are free to modify and see and only come into
-    // effect at the moment the solver.LinearProgram "compiles" the program
     public String name;
-    public double lowerBound;
-    public double upperBound;
+    private final double lowerBound;
+    private final double upperBound;
 
+
+    /**
+     * Creates a linear program variable parameterized by lower and upper bounds
+     * @param name Name of the variable
+     * @param lowerBound Lower bound of the variable
+     * @param upperBound Upper bound of the variable
+     * @exception IllegalArgumentException if lowerBound > upperBound
+     */
     public Variable(String name, double lowerBound, double upperBound) {
-        assert lowerBound <= upperBound;
+        if (lowerBound > upperBound) {
+            throw new IllegalArgumentException("Lower bound must be smaller than the upper bound.");
+        }
+
         this.name = name;
         this.lowerBound = lowerBound;
         this.upperBound = upperBound;
     }
 
-    // Default standard form variable
+    /**
+     * Creates a standard linear program variable that is nonnegative
+     * @param name Name of the variable
+     */
     public Variable(String name) {
         this.name = name;
         this.lowerBound = 0;
@@ -29,5 +43,13 @@ public class Variable {
 
     public ArrayList<Integer> getAuxiliaryVariableIds() {
         return auxiliaryVariableIds;
+    }
+
+    public double getLowerBound() {
+        return lowerBound;
+    }
+
+    public double getUpperBound() {
+        return upperBound;
     }
 }
