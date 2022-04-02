@@ -15,6 +15,9 @@ public class ObjectiveFunction {
      *                         value corresponds to the ith variable
      */
     public ObjectiveFunction(ObjectiveGoal goal, ArrayList<Variable> objectiveVariables, ArrayList<Double> objectiveWeights) {
+        if (objectiveVariables.size() != objectiveWeights.size()) {
+            throw new IllegalArgumentException("The number of variables must match the number of weights.");
+        }
         this.goal = goal;
         this.objectiveVariables = objectiveVariables;
         this.objectiveWeights = objectiveWeights;
@@ -30,5 +33,14 @@ public class ObjectiveFunction {
 
     public ArrayList<Double> getObjectiveWeights() {
         return objectiveWeights;
+    }
+
+    /**
+     * Gets an empty objective function. Specifically, it returns the zero function
+     * that can be used to check only the feasibility of a linear program.
+     * @return an empty objective function
+     */
+    public static ObjectiveFunction empty() {
+        return new ObjectiveFunction(ObjectiveGoal.MAXIMIZE, new ArrayList<>(), new ArrayList<>());
     }
 }

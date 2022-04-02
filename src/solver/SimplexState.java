@@ -267,14 +267,21 @@ public class SimplexState {
                 //
                 // Arbitrarily choose some non-zero nonbasic variable in the equality
                 // with the auxiliary variable and pivot
-
-                // TODO: Consider choosing the entering variable to have a large weight for numerical stability.
+                //
+                // Choose the entering variable to pivot with the basic auxiliary variable
+                // to have the largest coefficient magnitude for numerical stability
+                int e = -1;
+                double maxWeight = Double.NEGATIVE_INFINITY;
                 for (int j = 0; j < n; j++) {
-                    if (nonBasic.get(j) && Math.abs(getA(auxVar, j)) > EPSILON) {
-                        pivot(j, auxVar);
-                        break;
+                    if (nonBasic.get(j)) {
+                        double w = Math.abs(getA(auxVar, j));
+                        if (w > maxWeight) {
+                            e = j;
+                            maxWeight = w;
+                        }
                     }
                 }
+                pivot(e, auxVar);
             }
 
             // Restore original linear program by popping off the last

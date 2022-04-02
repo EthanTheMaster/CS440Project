@@ -373,4 +373,17 @@ public class LinearProgram {
             }
         }
     }
+
+    /**
+     * Gets the status of the linear program solution
+     * @return the status of the linear program solution
+     */
+    public SolutionResult getSolutionStatus() {
+        // Solve an unsolved linear program
+        if (currentSolution == null) {
+            solve();
+        }
+
+        return currentSolution.getStatus();
+    }
 }

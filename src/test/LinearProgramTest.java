@@ -185,11 +185,7 @@ public class LinearProgramTest {
         Variable x5 = p.registerUnboundedVariable("x5");
 
         // Empty objective function
-        p.setObjective(new ObjectiveFunction(
-                ObjectiveGoal.MAXIMIZE,
-                new ArrayList<>(),
-                new ArrayList<>()
-        ));
+        p.setObjective(ObjectiveFunction.empty());
 
         p.addConstraint(new Constraint(
                 new ArrayList<>(Arrays.asList(x1, x2)),
@@ -242,7 +238,6 @@ public class LinearProgramTest {
 
         p.solve();
 
-
         double x1Value = p.evaluateVariable(x1).get();
         double x2Value = p.evaluateVariable(x2).get();
         double x3Value = p.evaluateVariable(x3).get();
@@ -251,6 +246,7 @@ public class LinearProgramTest {
         // Feasibility test
         boolean passed =
                 Math.abs(p.getObjectiveValue().get() - 0.0) < EPSILON &&
+                p.getSolutionStatus() == SolutionResult.FEASIBLE &&
                 x1Value - x2Value <= 0 &&
                 x1Value - x5Value <= -1 &&
                 x2Value - x5Value <= 1 &&
@@ -273,11 +269,7 @@ public class LinearProgramTest {
         Variable x5 = p.registerUnboundedVariable("x5");
 
         // Empty objective function
-        p.setObjective(new ObjectiveFunction(
-                ObjectiveGoal.MAXIMIZE,
-                new ArrayList<>(),
-                new ArrayList<>()
-        ));
+        p.setObjective(ObjectiveFunction.empty());
 
         p.addConstraint(new Constraint(
                 new ArrayList<>(Arrays.asList(x1, x2)),
@@ -337,7 +329,9 @@ public class LinearProgramTest {
         p.solve();
 
         // Feasibility test ... Problem should be infeasible
-        boolean passed = p.getObjectiveValue().isEmpty();
+        boolean passed =
+                p.getObjectiveValue().isEmpty() &&
+                p.getSolutionStatus() == SolutionResult.INFEASIBLE;
 
         printTestStatus("Difference Constraint Test 2", passed);
     }
