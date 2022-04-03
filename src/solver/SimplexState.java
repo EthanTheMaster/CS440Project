@@ -1,6 +1,7 @@
 package solver;
 
 import java.util.ArrayList;
+import java.util.TreeSet;
 
 /*
 All references to "CLRS" refers to:
@@ -20,8 +21,9 @@ public class SimplexState {
     public ArrayList<Double> c; // n vector
     private double objConst;
 
-    // TODO: Consider using a BitSet instead
-    private ArrayList<Boolean> nonBasic; // n vector
+    // Set of nonbasic and basic variables
+    private final TreeSet<Integer> nonBasic;
+    private final TreeSet<Integer> basic;
 
     /**
      * Creates a linear program in slack form given a linear program in
@@ -40,7 +42,8 @@ public class SimplexState {
 
 
         objConst = standardForm.objConst;
-        nonBasic = new ArrayList<>(n);
+        nonBasic = new TreeSet<>();
+        basic = new TreeSet<>();
 
         A = getEmptyMatrix(n, n);
         b = new ArrayList<>(n);
@@ -52,12 +55,11 @@ public class SimplexState {
         // Set appropriate entries in b and extend c vector
         // Adapt A matrix to include slack variables
         for (int i = 0; i < numNonBasicVars; i++) {
-            nonBasic.add(true);
+            nonBasic.add(i);
             b.add(0.0);
         }
 
         for (int i = 0; i < numBasicVars; i++) {
-            nonBasic.add(false);
             b.add(standardForm.b.get(i));
             // Extend c vector
             c.add(0.0);
@@ -71,6 +73,7 @@ public class SimplexState {
             for (int j = 0; j < numNonBasicVars; j++) {
                 updateA(numNonBasicVars + i, j, standardForm.getA(i, j));
             }
+            basic.add(numNonBasicVars + i);
         }
     }
 
@@ -88,8 +91,8 @@ public class SimplexState {
 
         // Create new constraint where entering variable is a new basic slack variable
         b.set(e, b.get(l) / getA(l, e));
-        for (int j = 0; j < n; j++) {
-            if (nonBasic.get(j) && j != e) {
+        for (int j : nonBasic) {
+            if (j != e) {
                 updateA(e, j, getA(l, j) / getA(l, e));
             }
         }
@@ -97,11 +100,11 @@ public class SimplexState {
 
         // With our new basic variable e, perform substitution in the other basic variable
         // equations
-        for (int i = 0; i < n; i++) {
-            if (!nonBasic.get(i) && i != l) {
+        for (int i : basic) {
+            if (i != l) {
                 b.set(i, b.get(i) - getA(i, e)*b.get(e));
-                for (int j = 0; j < n; j++) {
-                    if (nonBasic.get(j) && j != e) {
+                for (int j : nonBasic) {
+                    if (j != e) {
                         updateA(i, j, getA(i, j) - getA(i, e)*getA(e, j));
                     }
                 }
@@ -111,16 +114,18 @@ public class SimplexState {
 
         // Update objective function
         objConst = objConst + c.get(e) * b.get(e);
-        for (int j = 0; j < n; j++) {
-            if (nonBasic.get(j) && j != e) {
+        for (int j : nonBasic) {
+            if (j != e) {
                 c.set(j, c.get(j) - c.get(e)*getA(e, j));
             }
             c.set(l, -c.get(e)*getA(e, l));
         }
 
         // Update our basic and nonbasic variables
-        nonBasic.set(e, false); // entering variable is now basic
-        nonBasic.set(l, true); // leaving variable is now nonbasic
+        basic.remove(l);
+        nonBasic.add(l);
+        nonBasic.remove(e);
+        basic.add(e);
     }
 
     /**
@@ -139,8 +144,8 @@ public class SimplexState {
         while (true) {
             // Find entering variable
             int e = -1;
-            for (int j = 0; j < n; j++) {
-                if (nonBasic.get(j) && c.get(j) > 0) {
+            for (int j : nonBasic) {
+                if (c.get(j) > 0) {
                     e = j;
                     break;
                 }
@@ -152,15 +157,13 @@ public class SimplexState {
             // Find leaving variable
             int l = -1;
             double deltaL = Double.POSITIVE_INFINITY;
-            for (int i = 0; i < n; i++) {
-                if (!nonBasic.get(i)) {
-                    if (getA(i, e) > 0) {
-                        double limit = b.get(i) / getA(i, e);
-                        // Must be < to get smallest index where min occurs for Bland's rule
-                        if (limit < deltaL) {
-                            l = i;
-                            deltaL = limit;
-                        }
+            for (int i : basic) {
+                if (getA(i, e) > 0) {
+                    double limit = b.get(i) / getA(i, e);
+                    // Must be < to get smallest index where min occurs for Bland's rule
+                    if (limit < deltaL) {
+                        l = i;
+                        deltaL = limit;
                     }
                 }
             }
@@ -186,13 +189,11 @@ public class SimplexState {
     public boolean initializeSimplex() {
         int k = -1;
         double bk = Double.POSITIVE_INFINITY;
-        for (int i = 0; i < n; i++) {
-            if (!nonBasic.get(i)) {
-                // The < is necessary for Bland's Rule
-                if (b.get(i) < bk) {
-                    k = i;
-                    bk = b.get(i);
-                }
+        for (int i : basic) {
+            // The < is necessary for Bland's Rule
+            if (b.get(i) < bk) {
+                k = i;
+                bk = b.get(i);
             }
         }
         // Basic solution is feasible
@@ -205,7 +206,7 @@ public class SimplexState {
         ArrayList<Double> oldC = new ArrayList<>(c);
         double oldObjConst = objConst;
         // Remember what were the nonbasic variables
-        ArrayList<Boolean> oldNonBasic = new ArrayList<>(nonBasic);
+        TreeSet<Integer> oldNonBasic = new TreeSet<>(nonBasic);
 
         // In CLRS, the auxiliary variable is x0 which we will
         // assign id being the last index
@@ -214,7 +215,7 @@ public class SimplexState {
         // New row in A matrix for the auxiliary variable
         ArrayList<Double> newRow = new ArrayList<>(n+1);
         for (int i = 0; i < n; i++) {
-            if (!nonBasic.get(i)) {
+            if (basic.contains(i)) {
                 // Add auxiliary variable to each constraint
                 A.get(i).add(-1.0);
             } else {
@@ -238,7 +239,7 @@ public class SimplexState {
 
         // Bookkeep by "registering" this new auxiliary variable
         n++;
-        nonBasic.add(true);
+        nonBasic.add(auxVar);
         b.add(0.0);
 
         // Pivot the auxiliary linear program so that basic solution is feasible
@@ -254,8 +255,7 @@ public class SimplexState {
             // has objective value objConst, which is (basically) 0, implies that
             // the current, final slack form is feasible in the original
             // linear program and we know the auxiliary variable is 0.
-
-            if (!nonBasic.get(auxVar)) {
+            if (basic.contains(auxVar)) {
                 // Perform degenerate pivot with the auxiliary variable
                 // to make it nonbasic so basic solution in the auxiliary
                 // linear program is also feasible in the original linear
@@ -272,13 +272,11 @@ public class SimplexState {
                 // to have the largest coefficient magnitude for numerical stability
                 int e = -1;
                 double maxWeight = Double.NEGATIVE_INFINITY;
-                for (int j = 0; j < n; j++) {
-                    if (nonBasic.get(j)) {
-                        double w = Math.abs(getA(auxVar, j));
-                        if (w > maxWeight) {
-                            e = j;
-                            maxWeight = w;
-                        }
+                for (int j : nonBasic) {
+                    double w = Math.abs(getA(auxVar, j));
+                    if (w > maxWeight) {
+                        e = j;
+                        maxWeight = w;
                     }
                 }
                 pivot(e, auxVar);
@@ -303,22 +301,17 @@ public class SimplexState {
             for (int i = 0; i < n; i++) {
                 substitutedC.add(0.0);
             }
-            for (int i = 0; i < n; i++) {
-                // Loop through all old nonbasic variables in the old objective function
-                if (oldNonBasic.get(i)) {
-                    // Check if that variable is basic or nonbasic in the transformed
-                    // linear program
-                    if (nonBasic.get(i)) {
-                        // The variable is still nonbasic so just add the weight
-                        substitutedC.set(i, substitutedC.get(i) + oldC.get(i));
-                    } else {
-                        // The variable became basic so perform substitution
-                        oldObjConst = oldObjConst + oldC.get(i)*b.get(i);
-                        for (int j = 0; j < n; j++) {
-                            if (nonBasic.get(j)) {
-                                substitutedC.set(j, substitutedC.get(j) - oldC.get(i)*getA(i, j));
-                            }
-                        }
+            for (int i : oldNonBasic) {
+                // Check if that variable is basic or nonbasic in the transformed
+                // linear program
+                if (nonBasic.contains(i)) {
+                    // The variable is still nonbasic so just add the weight
+                    substitutedC.set(i, substitutedC.get(i) + oldC.get(i));
+                } else {
+                    // The variable became basic so perform substitution
+                    oldObjConst = oldObjConst + oldC.get(i)*b.get(i);
+                    for (int j : nonBasic) {
+                        substitutedC.set(j, substitutedC.get(j) - oldC.get(i)*getA(i, j));
                     }
                 }
             }
@@ -352,7 +345,7 @@ public class SimplexState {
         // Optimal solution is the basic solution
         ArrayList<Double> solution = new ArrayList<>(n);
         for (int i = 0; i < n; i++) {
-            if (nonBasic.get(i)) {
+            if (nonBasic.contains(i)) {
                 solution.add(0.0);
             } else {
                 solution.add(b.get(i));
@@ -413,13 +406,10 @@ public class SimplexState {
 
         ArrayList<String> terms = new ArrayList<>();
         terms.add(objConst + "");
-        for (int i = 0; i < n; i++) {
-            // Current variable is nonbasic
-            if (nonBasic.get(i)) {
-                double w = c.get(i);
-                if (w != 0) {
-                    terms.add(String.format("(%f)x_%d", w, i));
-                }
+        for (int i : nonBasic) {
+            double w = c.get(i);
+            if (w != 0) {
+                terms.add(String.format("(%f)x_%d", w, i));
             }
         }
         res.append(String.join(" + ", terms));
@@ -427,23 +417,17 @@ public class SimplexState {
         res.append("CONSTRAINTS:\n");
 
         // Print slack equality constraints
-        for (int i = 0; i < n; i++) {
-            // Current variable is basic
-            if (!nonBasic.get(i)) {
-                terms = new ArrayList<>();
-                for (int j = 0; j < n; j++) {
-                    // RHS of equal sign consists of nonbasic variables
-                    if (nonBasic.get(j)) {
-                        double w = getA(i, j);
-                        if (w != 0) {
-                            terms.add(String.format("(%f)x_%d", w, j));
-                        }
-                    }
+        for (int i : basic) {
+            terms = new ArrayList<>();
+            for (int j : nonBasic) {
+                double w = getA(i, j);
+                if (w != 0) {
+                    terms.add(String.format("(%f)x_%d", w, j));
                 }
-
-                res.append(String.format("\tx_%d = %f - ( %s )", i, b.get(i), String.join(" + ", terms)));
-                res.append("\n");
             }
+
+            res.append(String.format("\tx_%d = %f - ( %s )", i, b.get(i), String.join(" + ", terms)));
+            res.append("\n");
         }
 
         return res.toString();
