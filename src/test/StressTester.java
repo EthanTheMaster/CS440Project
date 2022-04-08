@@ -159,6 +159,29 @@ public class StressTester {
             throw new Exception("Found an augmenting path!");
         }
 
+        // Check flow conservation
+        HashMap<String, Double> netFlow = new HashMap<>();
+        for (String v : network.keySet()) {
+            netFlow.put(v, 0.0);
+        }
+        for (String u : network.keySet()) {
+            for (String v : network.get(u).keySet()) {
+                Variable flowVariable = flows.get(String.format(flowFormat, u, v));
+                double flow = p.evaluateVariable(flowVariable).get();
+                if (flow < 0) {
+                    throw new Exception("Found a negative flow!");
+                }
+                netFlow.put(u, netFlow.get(u) + flow); // Outflow of u
+                netFlow.put(v, netFlow.get(v) - flow); // Inflow of v
+            }
+        }
+        for (String v : netFlow.keySet()) {
+            if (!v.equals("s") && !v.equals("t") && Math.abs(netFlow.get(v)) > EPSILON) {
+                System.out.println(netFlow.get(v));
+                throw new Exception("Flow conservation is violated!");
+            }
+        }
+
         return time;
     }
 }

@@ -175,6 +175,49 @@ public class LinearProgramTest {
         printTestStatus("Test 3", passed);
     }
 
+    public static void test4() {
+        LinearProgram p = new LinearProgram();
+        Variable corn = p.registerNonnegativeVariable("corn");
+        Variable soybeans = p.registerNonnegativeVariable("soybeans");
+
+        // Fertilizer/herbicide constraint
+        p.addConstraint(new Constraint(
+                new ArrayList<>(Arrays.asList(corn, soybeans)),
+                new ArrayList<>(Arrays.asList(9.0, 3.0)),
+                Relation.LEQ,
+                40500
+        ));
+
+        // Labor constraint
+        p.addConstraint(new Constraint(
+                new ArrayList<>(Arrays.asList(corn, soybeans)),
+                new ArrayList<>(Arrays.asList(3.0/4.0, 1.0)),
+                Relation.LEQ,
+                5250
+        ));
+
+        // Land constraint
+        p.addConstraint(new Constraint(
+                new ArrayList<>(Arrays.asList(corn, soybeans)),
+                new ArrayList<>(Arrays.asList(1.0, 1.0)),
+                Relation.LEQ,
+                6000
+        ));
+
+        // Profit objective
+        p.setObjective(new ObjectiveFunction(
+                ObjectiveGoal.MAXIMIZE,
+                new ArrayList<>(Arrays.asList(corn, soybeans)),
+                new ArrayList<>(Arrays.asList(240.0, 160.0))
+        ));
+        p.solve();
+        boolean passed =
+                Math.abs(p.getObjectiveValue().get() - 1260000.0) < EPSILON
+                && Math.abs(p.evaluateVariable(corn).get() - 3750.0) < EPSILON
+                && Math.abs(p.evaluateVariable(soybeans).get() - 2250.0) < EPSILON;
+        printTestStatus("Test 4", passed);
+    }
+
     // Reference: CLRS ed 3 Section 24.4 Example (Inequalities 24.3 - 24.10)
     public static void differenceConstraintTest1() {
         LinearProgram p = new LinearProgram();
@@ -391,12 +434,26 @@ public class LinearProgramTest {
         printTestStatus("Maximum Flow Test 1", passed);
     }
 
+    public static void stressTest1() {
+        long time = 0;
+        boolean passed = true;
+        try {
+            time = StressTester.maxFlow(10, 10);
+        } catch (Exception e) {
+            passed = false;
+            e.printStackTrace();
+        }
+        printTestStatus("Stress Test (n = k = 10) in " + time + " ms", passed);
+    }
+
     public static void runAllTests() {
         LinearProgramTest.test1();
         LinearProgramTest.test2();
         LinearProgramTest.test3();
+        LinearProgramTest.test4();
         LinearProgramTest.differenceConstraintTest1();
         LinearProgramTest.differenceConstraintTest2();
         LinearProgramTest.maxFlowTest1();
+        LinearProgramTest.stressTest1();
     }
 }
