@@ -10,7 +10,10 @@ Introduction to Algorithms Third Edition by Cormen, Leiserson, Rivest, and Stein
 public class SimplexState {
     private static final double EPSILON = 0.0000001;
 
-    // Let n be the number of variables (basic + nonbasic variables)
+    // Let
+    //      m be the number of constraints and
+    //      n be the number of variables (basic + nonbasic variables)
+    private int m;
     private int n;
 
     public ArrayList<ArrayList<Double>> A; // n x n matrix
@@ -34,6 +37,7 @@ public class SimplexState {
         int numBasicVars = standardForm.b.size();
 
         // Convert standard form into slack form
+        m = standardForm.b.size();
         n = numBasicVars + numNonBasicVars;
 
 
