@@ -2,4 +2,4 @@
 out/
 report/_minted*
 SimplexAlgorithm.iml
-
+*.class
