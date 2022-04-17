@@ -1,0 +1,51 @@
+\begin{tikzpicture}
+\node[draw, circle, minimum size=0.7cm] (s) at (0, 0) {$s$};
+\node[draw, circle, minimum size=0.7cm] (t) at (10, 0) {$t$};
+
+\node[draw, circle, minimum size=0.7cm] (l1v1) at (2, 2) {};
+\node[draw, circle, minimum size=0.7cm] (l1v2) at (2, 1) {};
+\node[draw, circle, minimum size=0.7cm] (l1v3) at (2, -1) {};
+\node[draw, circle, minimum size=0.7cm] (l1v4) at (2, -2) {};
+\path (l1v2) -- node[scale=2, rotate=90] (more1) {$\ldots$} (l1v3);
+
+\node[draw, circle, minimum size=0.7cm] (l2v1) at (4, 2) {};
+\node[draw, circle, minimum size=0.7cm] (l2v2) at (4, 1) {};
+\node[draw, circle, minimum size=0.7cm] (l2v3) at (4, -1) {};
+\node[draw, circle, minimum size=0.7cm] (l2v4) at (4, -2) {};
+\path (l2v2) -- node[scale=2, rotate=90] (more2) {$\ldots$} (l2v3);
+
+\node[draw, circle, minimum size=0.7cm] (l3v1) at (6, 2) {};
+\node[draw, circle, minimum size=0.7cm] (l3v2) at (6, 1) {};
+\node[draw, circle, minimum size=0.7cm] (l3v3) at (6, -1) {};
+\node[draw, circle, minimum size=0.7cm] (l3v4) at (6, -2) {};
+\path (l3v2) -- node[scale=2, rotate=90] (more3) {$\ldots$} (l3v3);
+
+
+\node[draw, circle, minimum size=0.7cm] (l4v1) at (8, 2) {};
+\node[draw, circle, minimum size=0.7cm] (l4v2) at (8, 1) {};
+\node[draw, circle, minimum size=0.7cm] (l4v3) at (8, -1) {};
+\node[draw, circle, minimum size=0.7cm] (l4v4) at (8, -2) {};
+\path (l4v2) -- node[scale=2, rotate=90] (more4) {$\ldots$} (l4v3);
+
+\path (more3) -- node[scale=1.5] {$\ldots$} (more4);
+
+\foreach \v in {l1v1, l1v2, more1, l1v3, l1v4}
+    \draw[->] (s) -- (\v);
+
+\foreach \v in {l4v1, l4v2, more4, l4v3, l4v4}
+    \draw[->] (\v) -- (t);
+
+\foreach \u in {l1v1, l1v2, more1, l1v3, l1v4}
+    \foreach \v in {l2v1, l2v2, more2, l2v3, l2v4}
+        \draw[->] (\u) -- (\v);
+
+\foreach \u in {l2v1, l2v2, more2, l2v3, l2v4}
+    \foreach \v in {l3v1, l3v2, more3, l3v3, l3v4}
+        \draw[->] (\u) -- (\v);
+
+
+% Annotate parameters
+\draw[decorate, decoration={calligraphic brace, mirror, raise=0.5cm, amplitude=0.4cm}, ultra thick, pen colour={red}] (l1v4.south west) -- (l4v4.south east) node[pos=0.5, below=0.8cm, red, scale=1.5]{$k$};
+
+\draw[decorate, decoration={calligraphic brace, mirror, raise=2cm, amplitude=0.4cm}, ultra thick, pen colour={red}] (l1v1.north west) -- (l1v4.south west) node[pos=0.5, left=2.3cm, red, scale=1.5]{$n$};
+\end{tikzpicture}
