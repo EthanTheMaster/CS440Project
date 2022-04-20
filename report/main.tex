@@ -18,12 +18,14 @@
 \begin{document}
 
 \maketitle
+\tableofcontents
 
-\section{Introduction}
+\section{Abstract}
 Linear programming is an optimization technique with many applications in areas such as operations research and finance. Some problems on resource allocations can be formulated as linear programming problems. The ability to solve linear programming problems also has interesting theoretical implications. Constraining the variables to only take on integer values and determining the existence of a solution is NP-hard \cite{CLRS}. Moreover, the ability to solve linear programming problems yields an approximation algorithm for the minimum-weight vertex cover problem, an NP-hard problem \cite{CLRS}.
 
 Linear programming handles optimization problems of a particular flavor where a set of variables must be assigned values to maximize (or minimize) a linear function but without violating a set of linear constraints. We sought to implement the simplex algorithm, one of the first algorithms designed to solve linear programming problems. 
 
+\section{Structure}
 In Section \ref{Preliminaries}, we cover the basics of linear programming and the simplex algorithm. In Section \ref{Implementation}, we outline the design of our simplex algorithm implementation. Finally, in Section \ref{Testing}, we discuss our methodology in verifying the correctness and robustness of our implementation.
 
 \section{Preliminaries} \label{Preliminaries}
@@ -187,6 +189,9 @@ At this point, the simplex algorithm would stop because there is no nonbasic var
     (x_1, x_2, s_1, s_2, s_3) = (3750, 2250, 0, 375/2, 0)
 \end{align*}
 with objective value $1260000$ which the algorithm declares as optimal. Thus the farm co-op should plant $x_1 = 3750$ acres of corn and $x_2 = 2250$ acres of soybeans yielding a profit of $\$1,260,000$.
+
+\subsection{Running Time Of The Simplex Algorithm}
+Let $n$ be the number of variables of a linear program in standard form and $m$ be the number of constraints. Lemma 29.15 in \cite{CLRS} states that the simplex algorithm runs at most $\binom{n+m}{m}$ iterations. By looking at the pivoting procedure, \javaCode{Pivot}, in Section 29.3 of \cite{CLRS}, we see that each pivot iteration runs in $O(2n + nm)$ time yielding a worst-case overall running time of $O\left(\binom{n+m}{m}(2n + nm)\right)$. Moreover, a paper by Klee and Minty shows that there exists linear programming problems with $n$ variables and $m=n$ constraints requiring $2^n - 1$ iterations \cite{klee1972good}. We bring up this discussion to point out the fact that the simplex algorithm does not in general run in polynomial time. It may in fact run in exponential time. However, in practice, simplex runs reasonably quickly as we observe when validating our implementation in Section \ref{Testing}.
 
 \section{Implementation} \label{Implementation}
 \subsection{Implementation Objectives}

@@ -54,3 +54,6 @@ System.out.println("Optimal profit: " + p.getObjectiveValue());
 System.out.println("Corn: " + p.evaluateVariable(corn));
 System.out.println("Soybeans: " + p.evaluateVariable(soybeans));
 ```
+
+# Report
+You can find our report for this project in the `report/` directory. There, you'll find the latex `.tex` files that generated `main.pdf`, our report, and `presentation.pdf`, our in-class presentation.
